@@ -27,7 +27,8 @@ export function useElectionChat(persona: string = 'default') {
 
     try {
       const history = mapHistoryForGemini(messages);
-      const response = await fetch('/api/chat/stream', {
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${apiUrl}/api/chat/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text, persona, history }),
@@ -108,7 +109,8 @@ export function useElectionChat(persona: string = 'default') {
 
     try {
       const history = mapHistoryForGemini(messages);
-      const response = await fetch('/api/mythbust/stream', {
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${apiUrl}/api/mythbust/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: myth, persona, history }),
