@@ -8,8 +8,9 @@ import { ReadinessChecker } from './components/ReadinessChecker';
 import { useUser } from './context/UserContext';
 
 // Ashoka Chakra SVG Component
+// Ashoka Chakra SVG Component
 const AshokaChakra = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-blue-900 animate-[spin_20s_linear_infinite]">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-blue-900 animate-[spin_20s_linear_infinite]" aria-hidden="true">
     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1" />
     <circle cx="12" cy="12" r="2" fill="currentColor" />
     {[...Array(24)].map((_, i) => (
@@ -91,67 +92,91 @@ function App() {
 
   return (
     <div className="min-h-screen bg-orange-50 flex flex-col">
+      {/* Skip Navigation Link */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-orange-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-xl focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
       {/* Top Bar */}
-      <header className="bg-white border-b border-orange-100 sticky top-0 z-40 shadow-sm">
+      <header className="bg-white border-b border-orange-100 sticky top-0 z-40 shadow-sm" role="banner">
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AshokaChakra />
-            <span className="text-2xl font-black text-orange-600 tracking-tighter">VoteSaathi</span>
-            <span className="text-2xl ml-[-4px]">🇮🇳</span>
+            <h1 className="text-2xl font-black text-orange-600 tracking-tighter">VoteSaathi</h1>
+            <span className="text-2xl ml-[-4px]" aria-hidden="true">🇮🇳</span>
           </div>
           <div className="flex items-center gap-3">
             {isDemoMode && (
-              <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full border border-green-200">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <div 
+                className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full border border-green-200"
+                role="status"
+              >
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" aria-hidden="true" />
                 DEMO MODE
               </div>
             )}
             <div className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold border border-orange-200">
-              {getPersonaLabel()}
+              <span className="sr-only">Current Persona:</span> {getPersonaLabel()}
             </div>
             <button 
               onClick={() => setPersona(null)}
-              className="text-gray-400 hover:text-orange-600 text-sm font-medium transition-colors"
+              aria-label="Change voter persona"
+              className="text-gray-600 hover:text-orange-600 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none text-sm font-medium transition-colors px-2 py-1 rounded-md"
             >
               Change
             </button>
           </div>
         </div>
         {/* Tricolor Gradient Strip */}
-        <div className="h-1 w-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808]" />
+        <div className="h-1 w-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808]" aria-hidden="true" />
       </header>
 
-      <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8">
+      <main id="main-content" className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8" role="main">
         {/* Tabs */}
-        <div className="flex flex-wrap bg-white p-1 rounded-2xl shadow-sm mb-8 w-full md:w-fit border border-gray-100">
+        <nav className="flex flex-wrap bg-white p-1 rounded-2xl shadow-sm mb-8 w-full md:w-fit border border-gray-100" role="tablist" aria-label="Navigation Sections">
           <button
+            role="tab"
+            aria-selected={activeTab === 'guide'}
+            aria-controls="guide-panel"
+            id="tab-guide"
             onClick={() => setActiveTab('guide')}
-            className={`flex-1 md:flex-none px-8 py-3 rounded-xl font-bold transition-all min-h-[44px] ${
-              activeTab === 'guide' ? 'bg-orange-600 text-white shadow-md' : 'text-gray-500 hover:text-gray-700'
+            className={`flex-1 md:flex-none px-8 py-3 rounded-xl font-bold transition-all focus-visible:ring-4 focus-visible:ring-orange-500 focus-visible:outline-none min-h-[44px] ${
+              activeTab === 'guide' ? 'bg-orange-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-800'
             }`}
           >
             Guide
           </button>
           <button
+            role="tab"
+            aria-selected={activeTab === 'mythbuster'}
+            aria-controls="mythbuster-panel"
+            id="tab-mythbuster"
             onClick={() => setActiveTab('mythbuster')}
-            className={`flex-1 md:flex-none px-8 py-3 rounded-xl font-bold transition-all min-h-[44px] ${
-              activeTab === 'mythbuster' ? 'bg-orange-600 text-white shadow-md' : 'text-gray-500 hover:text-gray-700'
+            className={`flex-1 md:flex-none px-8 py-3 rounded-xl font-bold transition-all focus-visible:ring-4 focus-visible:ring-orange-500 focus-visible:outline-none min-h-[44px] ${
+              activeTab === 'mythbuster' ? 'bg-orange-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-800'
             }`}
           >
             Myth Buster
           </button>
           <button
+            role="tab"
+            aria-selected={activeTab === 'readiness'}
+            aria-controls="readiness-panel"
+            id="tab-readiness"
             onClick={() => setActiveTab('readiness')}
-            className={`flex-1 md:flex-none px-8 py-3 rounded-xl font-bold transition-all min-h-[44px] ${
-              activeTab === 'readiness' ? 'bg-orange-600 text-white shadow-md' : 'text-gray-500 hover:text-gray-700'
+            className={`flex-1 md:flex-none px-8 py-3 rounded-xl font-bold transition-all focus-visible:ring-4 focus-visible:ring-orange-500 focus-visible:outline-none min-h-[44px] ${
+              activeTab === 'readiness' ? 'bg-orange-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-800'
             }`}
           >
             Readiness Quiz
           </button>
-        </div>
+        </nav>
 
         {activeTab === 'guide' ? (
-          <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+          <div id="guide-panel" role="tabpanel" aria-labelledby="tab-guide" className="animate-in fade-in slide-in-from-top-4 duration-500 outline-none" tabIndex={0}>
             <div className="h-1 w-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] mb-6 rounded-full opacity-50" />
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Interactive Election Journey</h2>
             <ElectionTimeline onAskAI={handleAskAI} />
@@ -164,11 +189,11 @@ function App() {
             </div>
           </div>
         ) : activeTab === 'mythbuster' ? (
-          <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+          <div id="mythbuster-panel" role="tabpanel" aria-labelledby="tab-mythbuster" className="animate-in fade-in slide-in-from-top-4 duration-500 outline-none" tabIndex={0}>
             <MythBuster />
           </div>
         ) : (
-          <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+          <div id="readiness-panel" role="tabpanel" aria-labelledby="tab-readiness" className="animate-in fade-in slide-in-from-top-4 duration-500 outline-none" tabIndex={0}>
             <h2 className="text-3xl font-bold text-gray-900 mb-2 text-center">Are you ready to vote?</h2>
             <p className="text-gray-500 text-center mb-10">Take this 1-minute quiz to find out and get a personalized plan.</p>
             <ReadinessChecker onGetActionPlan={handleGetActionPlan} />

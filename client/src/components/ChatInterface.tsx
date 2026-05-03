@@ -87,6 +87,9 @@ export const ChatInterface = forwardRef<ChatInterfaceHandle>((_, ref) => {
       {/* Chat Messages */}
       <div 
         ref={scrollContainerRef}
+        role="log"
+        aria-live="polite"
+        aria-label="Election assistant conversation"
         className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50"
       >
         <AnimatePresence initial={false}>
@@ -96,7 +99,7 @@ export const ChatInterface = forwardRef<ChatInterfaceHandle>((_, ref) => {
               animate={{ opacity: 1 }}
               className="text-center text-gray-500 mt-10"
             >
-              <div className="text-4xl mb-4">🇮🇳</div>
+              <div className="text-4xl mb-4" role="img" aria-label="India flag">🇮🇳</div>
               <p className="text-lg font-medium text-gray-700">Namaste! How can I help you today?</p>
               <p className="text-sm text-gray-400 mt-1">Ask about voter ID, forms, or schedules.</p>
             </motion.div>
@@ -110,7 +113,9 @@ export const ChatInterface = forwardRef<ChatInterfaceHandle>((_, ref) => {
               transition={{ duration: 0.2 }}
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
+              <div 
+                aria-label={msg.role === 'user' ? `You said: ${msg.text}` : `VoteSaathi replied: ${msg.text}`}
+                className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
                 msg.role === 'user' 
                   ? 'bg-orange-600 text-white rounded-tr-none' 
                   : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
@@ -139,7 +144,7 @@ export const ChatInterface = forwardRef<ChatInterfaceHandle>((_, ref) => {
                             href={chunk.web.uri}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="bg-gray-50 border border-gray-200 text-gray-600 px-2 py-1 rounded-lg hover:border-orange-300 hover:text-orange-600 transition-all truncate max-w-[180px]"
+                            className="bg-gray-50 border border-gray-200 text-gray-600 px-2 py-1 rounded-lg hover:border-orange-300 hover:text-orange-600 transition-all truncate max-w-[180px] underline"
                           >
                             {chunk.web.title || 'Official Source'}
                           </a>
@@ -157,6 +162,9 @@ export const ChatInterface = forwardRef<ChatInterfaceHandle>((_, ref) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="flex justify-start items-center"
+              role="status"
+              aria-live="polite"
+              aria-label="VoteSaathi is thinking"
             >
               <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-none p-4 shadow-sm flex items-center gap-3">
                 <div className="relative flex items-center justify-center">
@@ -207,7 +215,8 @@ export const ChatInterface = forwardRef<ChatInterfaceHandle>((_, ref) => {
                     logEvent(analytics, 'chat_message_sent', { persona, source: 'suggestion' });
                     sendMessage(suggestion);
                   }}
-                  className="bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full text-xs font-medium hover:border-orange-500 hover:text-orange-600 transition-all shadow-sm active:scale-95 min-h-[32px]"
+                  aria-label={`Ask: ${suggestion}`}
+                  className="bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full text-xs font-medium hover:border-orange-500 hover:text-orange-600 transition-all shadow-sm active:scale-95 min-h-[32px] h-11"
                 >
                   {suggestion}
                 </button>
@@ -225,13 +234,16 @@ export const ChatInterface = forwardRef<ChatInterfaceHandle>((_, ref) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your question..."
+            aria-label="Type your election question"
+            aria-describedby="chat-hint"
             className="flex-1 border border-gray-200 rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
             disabled={isLoading}
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="bg-orange-600 text-white w-12 h-12 rounded-full flex items-center justify-center font-semibold hover:bg-orange-700 disabled:bg-gray-200 transition-all shadow-lg active:scale-90"
+            aria-label="Send message"
+            className="bg-orange-600 text-white w-12 h-12 rounded-full flex items-center justify-center font-semibold hover:bg-orange-700 disabled:bg-gray-200 transition-all shadow-lg active:scale-90 py-3 px-4"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -239,6 +251,9 @@ export const ChatInterface = forwardRef<ChatInterfaceHandle>((_, ref) => {
             </svg>
           </button>
         </form>
+        <div id="chat-hint" className="sr-only">
+          Press Enter or click Send to ask VoteSaathi
+        </div>
       </div>
     </div>
   );

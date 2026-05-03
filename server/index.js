@@ -27,11 +27,20 @@ app.use(helmet());
 app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
-    connectSrc: ["'self'", "https://api.nvidia.com", "https://generativelanguage.googleapis.com", "https://firebaseapp.com"],
-    scriptSrc: ["'self'"],
+    connectSrc: [
+      "'self'", 
+      "https://api.nvidia.com", 
+      "https://generativelanguage.googleapis.com", 
+      "https://firebaseapp.com",
+      "https://*.firebaseio.com",
+      "https://*.googleapis.com",
+      "https://*.google-analytics.com",
+      "https://stats.g.doubleclick.net"
+    ],
+    scriptSrc: ["'self'", "'unsafe-inline'", "https://*.googletagmanager.com"],
     styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
     fontSrc: ["'self'", "https://fonts.gstatic.com"],
-    imgSrc: ["'self'", "data:"],
+    imgSrc: ["'self'", "data:", "https://*.google-analytics.com", "https://*.googletagmanager.com"],
   },
 }));
 
