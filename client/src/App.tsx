@@ -6,8 +6,8 @@ import { ElectionTimeline } from './components/ElectionTimeline';
 import { MythBuster } from './components/MythBuster';
 import { ReadinessChecker } from './components/ReadinessChecker';
 import { useUser } from './context/UserContext';
+import { useAuth } from './hooks/useAuth';
 
-// Ashoka Chakra SVG Component
 // Ashoka Chakra SVG Component
 const AshokaChakra = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-blue-900 animate-[spin_20s_linear_infinite]" aria-hidden="true">
@@ -29,6 +29,7 @@ const AshokaChakra = () => (
 
 function App() {
   const { persona, setPersona } = useUser();
+  const { isAuthReady } = useAuth();
   console.log("App: rendering with persona:", persona);
   const [activeTab, setActiveTab] = useState<'guide' | 'mythbuster' | 'readiness'>('guide');
   const chatRef = useRef<ChatInterfaceHandle>(null);
@@ -61,6 +62,15 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [isDemoMode, persona, activeTab, demoTriggered]);
+
+  if (!isAuthReady) {
+    return (
+      <div className="min-h-screen bg-orange-50 flex flex-col items-center justify-center">
+        <AshokaChakra />
+        <p className="mt-4 text-orange-600 font-medium">Loading VoteSaathi...</p>
+      </div>
+    );
+  }
 
   if (!persona) {
     return <PersonaSelector />;

@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { useAuth } from './useAuth';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -10,6 +13,29 @@ export interface Message {
 export function useElectionChat(persona: string = 'default') {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { uid } = useAuth();
+
+  // Load chat history on mount
+  useEffect(() => {
+    if (!uid || !db) return;
+    const docRef = doc(db, 'chatHistory', uid);
+    getDoc(docRef)
+      .then(snap => {
+        if (snap.exists() && snap.data().messages) {
+          setMessages(snap.data().messages);
+        }
+      })
+      .catch(console.error);
+  }, [uid]);
+
+  // Save chat history when messages change and we are not loading
+  useEffect(() => {
+    if (!uid || !db || isLoading || messages.length === 0) return;
+    const docRef = doc(db, 'chatHistory', uid);
+    // Keep only the last 20 messages to stay within free tier
+    const messagesToSave = messages.slice(-20);
+    setDoc(docRef, { messages: messagesToSave }, { merge: true }).catch(console.error);
+  }, [messages, isLoading, uid]);
 
   const mapHistoryForGemini = (msgs: Message[]) => {
     return msgs.map(m => ({

@@ -1,5 +1,7 @@
 import { initializeApp, getApp, getApps } from "firebase/app";
 import { getAnalytics, logEvent as firebaseLogEvent, isSupported } from "firebase/analytics";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -21,6 +23,10 @@ const isConfigValid = !!(
 const app = isConfigValid
   ? (getApps().length === 0 ? initializeApp(firebaseConfig) : getApp())
   : null;
+
+// Initialize Auth and Firestore
+export const auth = app ? getAuth(app) : null;
+export const db = app ? getFirestore(app) : null;
 
 // Initialize Analytics lazily and safely
 export let analytics: any = null;

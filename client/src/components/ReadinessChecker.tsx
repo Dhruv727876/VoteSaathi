@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logEvent, analytics } from '../firebase';
+import { useUserProgress } from '../hooks/useUserProgress';
 
 interface ReadinessCheckerProps {
   onGetActionPlan: (gaps: string[]) => void;
@@ -43,6 +44,7 @@ export const ReadinessChecker: React.FC<ReadinessCheckerProps> = ({ onGetActionP
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [isFinished, setIsFinished] = useState(false);
+  const { saveProgress } = useUserProgress();
 
   const handleAnswer = (answer: boolean) => {
     const currentQuestion = QUESTIONS[step];
@@ -52,7 +54,13 @@ export const ReadinessChecker: React.FC<ReadinessCheckerProps> = ({ onGetActionP
     if (step < QUESTIONS.length - 1) {
       setStep(step + 1);
     } else {
-      logEvent(analytics, 'readiness_check_completed', { score: calculateScore() });
+      // For the final step, calculate score including the last answer
+      const finalAnswers = { ...answers, [currentQuestion.id]: answer };
+      const score = Object.values(finalAnswers).filter(val => val).length;
+      const gaps = QUESTIONS.filter(q => !finalAnswers[q.id]).map(q => q.gap);
+      
+      logEvent(analytics, 'readiness_check_completed', { score });
+      saveProgress(score, gaps);
       setIsFinished(true);
     }
   };
