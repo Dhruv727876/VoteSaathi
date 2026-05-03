@@ -47,7 +47,7 @@ HARD LIMITS:
 - Never invent deadlines — always say "check eci.gov.in for current dates"
 - If uncertain, say so and point to eci.gov.in or voters.eci.gov.in`;
 
-const PERSONAS = {
+export const PERSONAS = {
   firstTimeVoter: "The user is voting for the first time. Be encouraging, explain every term, and celebrate their participation.",
   seasonedVoter: "The user has voted before. Be concise, skip basics, focus on updates and lesser-known rights.",
   nriVoter: "The user is an NRI. Focus on Form 6A, overseas voter registration, and proxy/postal ballot rules.",
@@ -55,9 +55,13 @@ const PERSONAS = {
   default: "The user is a general Indian citizen curious about elections."
 };
 
-export async function askElectionAssistant(message, persona, history) {
+export function buildSystemPrompt(persona) {
   const personaDesc = PERSONAS[persona] || PERSONAS.default;
-  const systemInstruction = SYSTEM_PROMPT_BASE.replace("[PERSONA_DESCRIPTION]", personaDesc);
+  return SYSTEM_PROMPT_BASE.replace("[PERSONA_DESCRIPTION]", personaDesc);
+}
+
+export async function askElectionAssistant(message, persona, history) {
+  const systemInstruction = buildSystemPrompt(persona);
 
   const model = genAI.getGenerativeModel({
     model: 'gemini-2.0-flash', 

@@ -14,13 +14,31 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+const VALID_PERSONAS = ['firstTimeVoter', 'seasonedVoter', 'nriVoter', 'candidate', 'default'];
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, persona, history } = req.body;
+    let { message, persona, history } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    if (message.length > 1000) {
+      return res.status(400).json({ error: 'Message too long' });
+    }
+
+    if (persona && !VALID_PERSONAS.includes(persona)) {
+      return res.status(400).json({ error: 'Invalid persona' });
+    }
+
+    // Basic sanitization
+    message = message.replace(/<[^>]*>?/gm, '');
+
     console.log(`DEBUG: /api/chat - message: "${message}", persona: "${persona}", history length: ${history?.length || 0}`);
 
     const result = await askElectionAssistant(message, persona, history);
@@ -33,7 +51,15 @@ app.post('/api/chat', async (req, res) => {
 
 app.post('/api/chat/stream', async (req, res) => {
   try {
-    const { message, persona, history } = req.body;
+    let { message, persona, history } = req.body;
+    if (!message || message.length > 1000) {
+      return res.status(400).json({ error: 'Invalid message' });
+    }
+    if (persona && !VALID_PERSONAS.includes(persona)) {
+      return res.status(400).json({ error: 'Invalid persona' });
+    }
+    message = message.replace(/<[^>]*>?/gm, '');
+
     console.log(`DEBUG: /api/chat/stream - message: "${message}"`);
     await askElectionAssistantStream(message, persona, history, res);
   } catch (error) {
@@ -46,7 +72,12 @@ app.post('/api/chat/stream', async (req, res) => {
 
 app.post('/api/mythbust', async (req, res) => {
   try {
-    const { message, persona, history } = req.body;
+    let { message, persona, history } = req.body;
+    if (!message || message.length > 1000) {
+      return res.status(400).json({ error: 'Invalid message' });
+    }
+    message = message.replace(/<[^>]*>?/gm, '');
+
     const mythMessage = `MYTH TO BUST: ${message}. Use the MYTH BUSTING FORMAT from your instructions exactly.`;
     const result = await askElectionAssistant(mythMessage, persona, history);
     res.json(result);
@@ -58,8 +89,11 @@ app.post('/api/mythbust', async (req, res) => {
 
 app.post('/api/mythbust/stream', async (req, res) => {
   try {
-    const { message, persona, history } = req.body;
-    const mythMessage = `MYTH TO BUST: ${message}. Use the MYTH BUSTING FORMAT from your instructions exactly.`;
+    let { message, persona, history } = req.body;
+    if (!message || message.length > 1000) {
+      return res.status(400).json({ error: 'Invalid message' });
+    }
+    message = message.replace(/<[^>]*>?/gm, '');
     await askElectionAssistantStream(mythMessage, persona, history, res);
   } catch (error) {
     console.error('Error in /api/mythbust/stream:', error);
@@ -69,12 +103,7 @@ app.post('/api/mythbust/stream', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-// Force the process to stay alive
-setInterval(() => {}, 1000000);
+export default app;
 
 process.on('exit', (code) => {
   console.log(`DEBUG: Process exited with code: ${code}`);
