@@ -28,6 +28,7 @@ const AshokaChakra = () => (
 
 function App() {
   const { persona, setPersona } = useUser();
+  console.log("App: rendering with persona:", persona);
   const [activeTab, setActiveTab] = useState<'guide' | 'mythbuster' | 'readiness'>('guide');
   const chatRef = useRef<ChatInterfaceHandle>(null);
   const [isDemoMode, setIsDemoMode] = useState(false);

@@ -1,5 +1,5 @@
-import { initializeApp } from "firebase/app";
-import { getAnalytics, logEvent } from "firebase/analytics";
+import { initializeApp, getApp, getApps } from "firebase/app";
+import { getAnalytics, logEvent as firebaseLogEvent, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -11,6 +11,36 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-export const analytics = getAnalytics(app);
-export { logEvent };
+// Initialize Firebase only if core config fields are present
+const isConfigValid = !!(
+  firebaseConfig.apiKey && 
+  firebaseConfig.appId && 
+  firebaseConfig.projectId
+);
+
+const app = isConfigValid
+  ? (getApps().length === 0 ? initializeApp(firebaseConfig) : getApp())
+  : null;
+
+// Initialize Analytics lazily and safely
+export let analytics: any = null;
+
+if (app) {
+  isSupported().then(supported => {
+    if (supported) {
+      try {
+        analytics = getAnalytics(app);
+      } catch (err) {
+        console.error("Firebase Analytics initialization failed:", err);
+      }
+    }
+  }).catch(err => console.error("Firebase Analytics support check failed:", err));
+}
+
+export const logEvent = (analyticsInstance: any, eventName: string, eventParams?: any) => {
+  if (analyticsInstance) {
+    firebaseLogEvent(analyticsInstance, eventName, eventParams);
+  } else {
+    console.log(`[Analytics-Offline] ${eventName}:`, eventParams);
+  }
+};
