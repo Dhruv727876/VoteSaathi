@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
+import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import type { User } from 'firebase/auth';
 import { auth } from '../firebase';
 
 export function useAuth() {
@@ -21,7 +22,7 @@ export function useAuth() {
         setIsAuthReady(true);
       } else {
         // If not logged in, sign in anonymously
-        signInAnonymously(auth).catch((error) => {
+        signInAnonymously(auth!).catch((error) => {
           console.error("Anonymous auth failed:", error);
           setIsAuthReady(true); // Proceed anyway on failure
         });
