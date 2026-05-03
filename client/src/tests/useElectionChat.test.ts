@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useElectionChat } from '../hooks/useElectionChat';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-global.fetch = vi.fn();
+vi.stubGlobal('fetch', vi.fn());
 
 describe('useElectionChat Hook', () => {
   beforeEach(() => {
