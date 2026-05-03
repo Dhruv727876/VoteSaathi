@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { logEvent, analytics } from '../firebase';
 
 interface ReadinessCheckerProps {
   onGetActionPlan: (gaps: string[]) => void;
@@ -51,6 +52,7 @@ export const ReadinessChecker: React.FC<ReadinessCheckerProps> = ({ onGetActionP
     if (step < QUESTIONS.length - 1) {
       setStep(step + 1);
     } else {
+      logEvent(analytics, 'readiness_check_completed', { score: calculateScore() });
       setIsFinished(true);
     }
   };
@@ -114,6 +116,7 @@ export const ReadinessChecker: React.FC<ReadinessCheckerProps> = ({ onGetActionP
         <div className="flex flex-col sm:flex-row gap-4">
           <button
             onClick={() => {
+              logEvent(analytics, 'readiness_shared', { score });
               const summary = `🗳️ VoteSaathi Readiness Check\nScore: ${score}/5\n${gaps.length > 0 ? 'My Action Plan:\n' + gaps.map(g => `- ${g}`).join('\n') : 'I am 100% ready to vote!'}\n\nCheck your readiness at VoteSaathi!`;
               navigator.clipboard.writeText(summary);
               alert("Readiness summary copied to clipboard! 📋");

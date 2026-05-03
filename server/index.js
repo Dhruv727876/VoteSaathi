@@ -94,6 +94,7 @@ app.post('/api/mythbust/stream', async (req, res) => {
       return res.status(400).json({ error: 'Invalid message' });
     }
     message = message.replace(/<[^>]*>?/gm, '');
+    const mythMessage = `MYTH TO BUST: ${message}. Use the MYTH BUSTING FORMAT from your instructions exactly.`;
     await askElectionAssistantStream(mythMessage, persona, history, res);
   } catch (error) {
     console.error('Error in /api/mythbust/stream:', error);

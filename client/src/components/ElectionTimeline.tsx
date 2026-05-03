@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { analytics, logEvent } from "../firebase";
 
 interface TimelineStage {
   id: string;
@@ -167,7 +168,13 @@ export const ElectionTimeline: React.FC<ElectionTimelineProps> = ({ onAskAI }) =
           <React.Fragment key={stage.id}>
             <motion.button
               data-stage-id={stage.id}
-              onClick={() => setActiveStage(activeStage === stage.id ? null : stage.id)}
+              onClick={() => {
+                const isExpanding = activeStage !== stage.id;
+                setActiveStage(isExpanding ? stage.id : null);
+                if (isExpanding) {
+                  logEvent(analytics, "timeline_stage_viewed", { stage_id: stage.id });
+                }
+              }}
               animate={activeStage === stage.id ? { scale: [1, 1.05, 1], borderColor: ["#f97316", "#fb923c", "#f97316"] } : {}}
               transition={activeStage === stage.id ? { repeat: Infinity, duration: 2 } : {}}
               className={`flex-shrink-0 flex flex-col items-center p-4 md:p-5 rounded-2xl transition-all duration-300 border-2 w-[150px] md:w-[180px] min-h-[140px] md:min-h-[160px] ${
@@ -210,7 +217,13 @@ export const ElectionTimeline: React.FC<ElectionTimelineProps> = ({ onAskAI }) =
           </div>
 
           <button
-            onClick={() => onAskAI(activeData.askAI)}
+            onClick={() => {
+              onAskAI(activeData.askAI);
+              logEvent(analytics, "timeline_ask_ai_clicked", { 
+                stage_id: activeData.id, 
+                question: activeData.askAI 
+              });
+            }}
             className="w-full bg-gray-900 text-white py-3 rounded-xl font-semibold hover:bg-black transition-colors flex items-center justify-center gap-2"
           >
             Ask AI about this →

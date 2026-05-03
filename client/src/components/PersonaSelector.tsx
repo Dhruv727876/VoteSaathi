@@ -1,5 +1,6 @@
 import React from 'react';
 import { useUser } from '../context/UserContext';
+import { analytics, logEvent } from "../firebase";
 
 const personas = [
   {
@@ -67,7 +68,10 @@ export const PersonaSelector: React.FC = () => {
           {personas.map((p) => (
             <button
               key={p.id}
-              onClick={() => setPersona(p.id as any)}
+              onClick={() => {
+                setPersona(p.id as any);
+                logEvent(analytics, "persona_selected", { persona_id: p.id });
+              }}
               className="bg-white p-8 rounded-3xl shadow-sm border-2 border-transparent hover:border-orange-500 hover:bg-orange-50 transition-all duration-300 text-left group flex flex-col items-center md:items-start"
             >
               <span className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">

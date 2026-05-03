@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useElectionChat } from '../hooks/useElectionChat';
 import { useUser } from '../context/UserContext';
+import { logEvent, analytics } from '../firebase';
 
 const PRELOADED_MYTHS = [
   "My single vote doesn't make a difference",
@@ -22,12 +23,14 @@ export const MythBuster: React.FC = () => {
   const [customMyth, setCustomMyth] = useState('');
 
   const handleBust = (myth: string) => {
+    logEvent(analytics, 'myth_busted', { myth, type: 'preloaded' });
     bustMyth(myth);
   };
 
   const handleCustomBust = (e: React.FormEvent) => {
     e.preventDefault();
     if (customMyth.trim()) {
+      logEvent(analytics, 'myth_busted', { myth: customMyth, type: 'custom' });
       bustMyth(customMyth);
       setCustomMyth('');
     }

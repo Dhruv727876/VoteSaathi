@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } f
 import { motion, AnimatePresence } from 'framer-motion';
 import { useElectionChat } from '../hooks/useElectionChat';
 import { useUser } from '../context/UserContext';
+import { logEvent, analytics } from '../firebase';
 
 export interface ChatInterfaceHandle {
   sendMessage: (text: string) => void;
@@ -50,6 +51,7 @@ export const ChatInterface = forwardRef<ChatInterfaceHandle>((_, ref) => {
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
+      logEvent(analytics, 'chat_message_sent', { persona });
       sendMessage(input);
       setInput('');
     }
@@ -201,7 +203,10 @@ export const ChatInterface = forwardRef<ChatInterfaceHandle>((_, ref) => {
               {currentSuggestions.map((suggestion, idx) => (
                 <button
                   key={idx}
-                  onClick={() => sendMessage(suggestion)}
+                  onClick={() => {
+                    logEvent(analytics, 'chat_message_sent', { persona, source: 'suggestion' });
+                    sendMessage(suggestion);
+                  }}
                   className="bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full text-xs font-medium hover:border-orange-500 hover:text-orange-600 transition-all shadow-sm active:scale-95 min-h-[32px]"
                 >
                   {suggestion}
