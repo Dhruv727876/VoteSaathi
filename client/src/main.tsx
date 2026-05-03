@@ -5,7 +5,7 @@ import App from './App.tsx'
 import { UserProvider } from './context/UserContext.tsx'
 
 // Global error logger for production debugging
-window.onerror = (msg, url, line, col, error) => {
+window.onerror = (msg, url, line) => {
   console.error("CRITICAL ERROR:", msg, "at", url, ":", line);
   const root = document.getElementById('root');
   if (root && root.innerHTML === '') {
