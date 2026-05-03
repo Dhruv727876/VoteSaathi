@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './useAuth';
@@ -44,7 +44,7 @@ export function useElectionChat(persona: string = 'default') {
     }));
   };
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = useCallback(async (text: string) => {
     if (!text.trim()) return;
 
     const userMessage: Message = { role: 'user', text };
@@ -124,9 +124,9 @@ export function useElectionChat(persona: string = 'default') {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [persona, uid]);
 
-  const bustMyth = async (myth: string) => {
+  const bustMyth = useCallback(async (myth: string) => {
     if (!myth.trim()) return;
 
     const userMessage: Message = { role: 'user', text: myth };
@@ -206,7 +206,7 @@ export function useElectionChat(persona: string = 'default') {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [persona, uid]);
 
   return { messages, isLoading, sendMessage, bustMyth };
 }

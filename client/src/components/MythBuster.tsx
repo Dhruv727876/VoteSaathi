@@ -17,7 +17,7 @@ const PRELOADED_MYTHS = [
   "One party winning means democracy has failed"
 ];
 
-export const MythBuster: React.FC = () => {
+export const MythBuster: React.FC = React.memo(() => {
   const { persona } = useUser();
   const { messages, isLoading, bustMyth } = useElectionChat(persona || 'default');
   const [customMyth, setCustomMyth] = useState('');
@@ -209,4 +209,4 @@ export const MythBuster: React.FC = () => {
       </div>
     </div>
   );
-};
+});

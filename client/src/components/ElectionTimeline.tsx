@@ -87,7 +87,7 @@ interface ElectionTimelineProps {
   onAskAI: (question: string) => void;
 }
 
-export const ElectionTimeline: React.FC<ElectionTimelineProps> = ({ onAskAI }) => {
+export const ElectionTimeline: React.FC<ElectionTimelineProps> = React.memo(({ onAskAI }) => {
   const [activeStage, setActiveStage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftScroll, setShowLeftScroll] = useState(false);
@@ -292,4 +292,4 @@ export const ElectionTimeline: React.FC<ElectionTimelineProps> = ({ onAskAI }) =
       )}
     </div>
   );
-};
+});

@@ -1,12 +1,20 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { ChatInterface } from './components/ChatInterface';
 import type { ChatInterfaceHandle } from './components/ChatInterface';
 import { PersonaSelector } from './components/PersonaSelector';
-import { ElectionTimeline } from './components/ElectionTimeline';
-import { MythBuster } from './components/MythBuster';
-import { ReadinessChecker } from './components/ReadinessChecker';
 import { useUser } from './context/UserContext';
 import { useAuth } from './hooks/useAuth';
+
+const ElectionTimeline = lazy(() => import('./components/ElectionTimeline').then(m => ({ default: m.ElectionTimeline })));
+const MythBuster = lazy(() => import('./components/MythBuster').then(m => ({ default: m.MythBuster })));
+const ReadinessChecker = lazy(() => import('./components/ReadinessChecker').then(m => ({ default: m.ReadinessChecker })));
+
+const TabFallback = () => (
+  <div className="flex items-center justify-center p-12 text-gray-400">
+    <div className="w-6 h-6 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin mr-3" />
+    Loading...
+  </div>
+);
 
 // Ashoka Chakra SVG Component
 const AshokaChakra = () => (
@@ -189,7 +197,9 @@ function App() {
           <div id="guide-panel" role="tabpanel" aria-labelledby="tab-guide" className="animate-in fade-in slide-in-from-top-4 duration-500 outline-none" tabIndex={0}>
             <div className="h-1 w-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] mb-6 rounded-full opacity-50" />
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Interactive Election Journey</h2>
-            <ElectionTimeline onAskAI={handleAskAI} />
+            <Suspense fallback={<TabFallback />}>
+              <ElectionTimeline onAskAI={handleAskAI} />
+            </Suspense>
             
             <div className="mt-12" id="ai-chat-section">
               <h2 className="text-3xl font-bold text-gray-900 mb-6">Ask VoteSaathi AI</h2>
@@ -200,13 +210,17 @@ function App() {
           </div>
         ) : activeTab === 'mythbuster' ? (
           <div id="mythbuster-panel" role="tabpanel" aria-labelledby="tab-mythbuster" className="animate-in fade-in slide-in-from-top-4 duration-500 outline-none" tabIndex={0}>
-            <MythBuster />
+            <Suspense fallback={<TabFallback />}>
+              <MythBuster />
+            </Suspense>
           </div>
         ) : (
           <div id="readiness-panel" role="tabpanel" aria-labelledby="tab-readiness" className="animate-in fade-in slide-in-from-top-4 duration-500 outline-none" tabIndex={0}>
             <h2 className="text-3xl font-bold text-gray-900 mb-2 text-center">Are you ready to vote?</h2>
             <p className="text-gray-500 text-center mb-10">Take this 1-minute quiz to find out and get a personalized plan.</p>
-            <ReadinessChecker onGetActionPlan={handleGetActionPlan} />
+            <Suspense fallback={<TabFallback />}>
+              <ReadinessChecker onGetActionPlan={handleGetActionPlan} />
+            </Suspense>
           </div>
         )}
       </main>

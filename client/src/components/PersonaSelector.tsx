@@ -55,7 +55,7 @@ const AshokaChakra = () => (
   </svg>
 );
 
-export const PersonaSelector: React.FC = () => {
+export const PersonaSelector: React.FC = React.memo(() => {
   const { setPersona } = useUser();
 
   return (
@@ -104,4 +104,4 @@ export const PersonaSelector: React.FC = () => {
       </div>
     </div>
   );
-};
+});
