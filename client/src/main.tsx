@@ -17,18 +17,33 @@ window.onerror = (msg, url, line) => {
   }
 };
 
-console.log("VoteSaathi: Initializing...");
+console.log("VoteSaathi: Initializing at " + new Date().toISOString());
+console.log("VoteSaathi: Base URL is " + import.meta.env.BASE_URL);
 
 const container = document.getElementById('root');
 if (!container) {
   console.error("VoteSaathi: Root element #root not found!");
 } else {
-  createRoot(container).render(
-    <StrictMode>
-      <UserProvider>
-        <App />
-      </UserProvider>
-    </StrictMode>,
-  );
-  console.log("VoteSaathi: Mount triggered.");
+  try {
+    const root = createRoot(container);
+    root.render(
+      <StrictMode>
+        <UserProvider>
+          <App />
+        </UserProvider>
+      </StrictMode>,
+    );
+    console.log("VoteSaathi: Mount successful.");
+  } catch (err) {
+    console.error("VoteSaathi: Mount failed:", err);
+  }
 }
+
+// Fallback check if nothing renders
+setTimeout(() => {
+  const root = document.getElementById('root');
+  if (root && root.innerHTML === '') {
+    console.warn("VoteSaathi: Root is still empty after 2s. Attempting emergency render.");
+    root.innerHTML = '<div style="padding: 20px; text-align: center;"><h1>Loading VoteSaathi...</h1><p>If this stays, check your internet connection or console for errors.</p></div>';
+  }
+}, 2000);

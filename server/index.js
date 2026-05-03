@@ -106,6 +106,15 @@ app.post('/api/mythbust/stream', async (req, res) => {
 
 export default app;
 
+// Support running directly with node index.js
+const isDirectRun = process.argv[1] && (process.argv[1].endsWith('index.js') || process.argv[1].endsWith('index.mjs'));
+if (isDirectRun) {
+  const port = process.env.PORT || 5000;
+  app.listen(port, () => {
+    console.log(`Server started via direct run on port ${port}`);
+  });
+}
+
 process.on('exit', (code) => {
   console.log(`DEBUG: Process exited with code: ${code}`);
 });
