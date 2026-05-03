@@ -1,9 +1,20 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
 import { askElectionAssistant, askElectionAssistantStream } from './nvidia.js';
+import { chatLimiter, mythLimiter } from './middleware/rateLimiter.js';
+import { validateChatInput, validateMythInput } from './middleware/validateChat.js';
 
 dotenv.config();
+
+// STEP 5: Add environment variable validation on server startup
+const REQUIRED_ENV_VARS = ["NVIDIA_API_KEY", "PORT"]; // Using NVIDIA_API_KEY as currently active
+const missing = REQUIRED_ENV_VARS.filter((key) => !process.env[key]);
+if (missing.length > 0) {
+  console.error("Missing required environment variables:", missing.join(", "));
+  process.exit(1);
+}
 
 console.log('DEBUG: NVIDIA_API_KEY present:', !!process.env.NVIDIA_API_KEY);
 console.log('DEBUG: Current directory:', process.cwd());
@@ -11,97 +22,98 @@ console.log('DEBUG: Current directory:', process.cwd());
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
-app.use(express.json());
+// STEP 2: Add helmet.js
+app.use(helmet());
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    connectSrc: ["'self'", "https://api.nvidia.com", "https://generativelanguage.googleapis.com", "https://firebaseapp.com"],
+    scriptSrc: ["'self'"],
+    styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+    fontSrc: ["'self'", "https://fonts.gstatic.com"],
+    imgSrc: ["'self'", "data:"],
+  },
+}));
 
-const VALID_PERSONAS = ['firstTimeVoter', 'seasonedVoter', 'nriVoter', 'candidate', 'default'];
+// STEP 8: Add CORS hardening
+const allowedOrigins = [
+  "http://localhost:5173", // Vite default
+  "http://localhost:3000",
+  "https://dhruv727876.github.io", // GitHub Pages
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"],
+}));
+
+app.use(express.json());
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.post('/api/chat', async (req, res) => {
+// STEP 3 & 4: Apply Rate Limiting and Validation
+app.post('/api/chat', chatLimiter, validateChatInput, async (req, res, next) => {
   try {
-    let { message, persona, history } = req.body;
-
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
-    }
-
-    if (message.length > 1000) {
-      return res.status(400).json({ error: 'Message too long' });
-    }
-
-    if (persona && !VALID_PERSONAS.includes(persona)) {
-      return res.status(400).json({ error: 'Invalid persona' });
-    }
-
-    // Basic sanitization
-    message = message.replace(/<[^>]*>?/gm, '');
-
+    const { message, persona, history } = req.body;
     console.log(`DEBUG: /api/chat - message: "${message}", persona: "${persona}", history length: ${history?.length || 0}`);
 
     const result = await askElectionAssistant(message, persona, history);
     res.json(result);
   } catch (error) {
-    console.error('Error in /api/chat:', error);
-    res.status(500).json({ error: error.message || 'Failed to get response from AI' });
+    next(error);
   }
 });
 
-app.post('/api/chat/stream', async (req, res) => {
+app.post('/api/chat/stream', chatLimiter, validateChatInput, async (req, res, next) => {
   try {
-    let { message, persona, history } = req.body;
-    if (!message || message.length > 1000) {
-      return res.status(400).json({ error: 'Invalid message' });
-    }
-    if (persona && !VALID_PERSONAS.includes(persona)) {
-      return res.status(400).json({ error: 'Invalid persona' });
-    }
-    message = message.replace(/<[^>]*>?/gm, '');
-
+    const { message, persona, history } = req.body;
     console.log(`DEBUG: /api/chat/stream - message: "${message}"`);
     await askElectionAssistantStream(message, persona, history, res);
   } catch (error) {
-    console.error('Error in /api/chat/stream:', error);
-    if (!res.headersSent) {
-      res.status(500).json({ error: error.message || 'Failed to get response from AI' });
-    }
+    next(error);
   }
 });
 
-app.post('/api/mythbust', async (req, res) => {
+app.post('/api/mythbust', mythLimiter, validateMythInput, async (req, res, next) => {
   try {
-    let { message, persona, history } = req.body;
-    if (!message || message.length > 1000) {
-      return res.status(400).json({ error: 'Invalid message' });
-    }
-    message = message.replace(/<[^>]*>?/gm, '');
-
+    const { message, persona, history } = req.body;
     const mythMessage = `MYTH TO BUST: ${message}. Use the MYTH BUSTING FORMAT from your instructions exactly.`;
     const result = await askElectionAssistant(mythMessage, persona, history);
     res.json(result);
   } catch (error) {
-    console.error('Error in /api/mythbust:', error);
-    res.status(500).json({ error: 'Failed to bust myth' });
+    next(error);
   }
 });
 
-app.post('/api/mythbust/stream', async (req, res) => {
+app.post('/api/mythbust/stream', mythLimiter, validateMythInput, async (req, res, next) => {
   try {
-    let { message, persona, history } = req.body;
-    if (!message || message.length > 1000) {
-      return res.status(400).json({ error: 'Invalid message' });
-    }
-    message = message.replace(/<[^>]*>?/gm, '');
+    const { message, persona, history } = req.body;
     const mythMessage = `MYTH TO BUST: ${message}. Use the MYTH BUSTING FORMAT from your instructions exactly.`;
     await askElectionAssistantStream(mythMessage, persona, history, res);
   } catch (error) {
-    console.error('Error in /api/mythbust/stream:', error);
-    if (!res.headersSent) {
-      res.status(500).json({ error: 'Failed to bust myth' });
-    }
+    next(error);
   }
+});
+
+// STEP 6: Global error handler
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err.message);
+  res.status(500).json({
+    error: "An unexpected error occurred. Please try again.",
+  });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
 });
 
 export default app;
@@ -122,3 +134,4 @@ process.on('exit', (code) => {
 process.on('uncaughtException', (err) => {
   console.error('DEBUG: Uncaught Exception:', err);
 });
+

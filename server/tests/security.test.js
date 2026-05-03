@@ -24,7 +24,7 @@ describe('Security and Validation', () => {
       });
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe('Message too long');
+    expect(response.body.error).toBe('Message must be between 1 and 1000 characters');
   });
 
   test('POST /api/chat sanitizes HTML tags', async () => {
@@ -38,9 +38,9 @@ describe('Security and Validation', () => {
         history: []
       });
 
-    // Verify the mock was called with sanitized message
+    // Verify the mock was called with sanitized message (tags escaped by xss package)
     expect(askElectionAssistant).toHaveBeenCalledWith(
-      "alert('xss')How do I vote?",
+      "&lt;script&gt;alert('xss')&lt;/script&gt;How do I vote?",
       "firstTimeVoter",
       expect.anything()
     );
